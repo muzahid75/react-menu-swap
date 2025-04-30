@@ -51,3 +51,61 @@ If any of the target menu items or their parent wrappers are not present or not 
 - If unsuccessful, it will **exit silently** without breaking the UI.
 
 ---
+## 💡 Code Explanation
+```
+(function swapMenuItems() {
+```
+# Wraps the logic in an IIFE (Immediately Invoked Function Expression) to avoid polluting the global scope.
+
+
+```
+const sessionKey = 'menuSwapped';
+if (sessionStorage.getItem(sessionKey)) {
+console.log('Already swapped this session.');
+return;
+}
+```
+# Checks sessionStorage to ensure the swap runs only once per session. If already swapped, the function exits early.
+```
+  const trySwap = () => {
+```
+# Defines a retrying function to safely attempt the swap after the DOM is ready.
+```
+    const links = document.querySelectorAll('nav a');
+```
+# Selects all anchor (<a>) elements inside the <nav> bar.
+```
+    const referenceLink = Array.from(links).find(link => link.textContent.trim() === 'Reference');
+    const communityLink = Array.from(links).find(link => link.textContent.trim() === 'Community' || link.textContent.trim() === 'Forum');
+```
+# Finds the desired menu items by their visible text content.
+```
+    if (referenceLink && communityLink) {
+      const refWrapper = referenceLink.closest('div.flex-auto');
+      const comWrapper = communityLink.closest('div.flex-auto');
+```
+# Finds the outermost layout divs for each link to ensure the swap targets the correct structural elements.
+```
+      if (refWrapper && comWrapper && refWrapper.previousElementSibling !== comWrapper) {
+        refWrapper.parentNode.insertBefore(comWrapper, refWrapper);
+        console.log('Swapped Reference and Forum!');
+      }
+```
+# Swaps the positions only if both wrappers exist and are not already in the swapped order.
+```
+      sessionStorage.setItem(sessionKey, 'true');
+```
+# Saves a session flag to ensure the swap won't repeat.
+```
+    } else {
+      requestAnimationFrame(trySwap); // Keep trying until elements exist
+    }
+```
+# If elements aren't loaded yet (due to async rendering), the function retries using requestAnimationFrame.
+```
+  };
+
+  requestAnimationFrame(trySwap);
+})();
+```
+# Begins the retry loop after the script is loaded.
